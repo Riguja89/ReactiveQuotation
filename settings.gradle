@@ -1,0 +1,25 @@
+pluginManagement {
+    repositories {
+        //mavenLocal()
+        //maven { url '...' }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'pinguapp'
+
+include ':app-main'
+include ':model'
+include ':usecase'
+include ':mongo-repository'
+include ':reactive-web'
+include ':serializer'
+
+project(':app-main').projectDir=file ('./src/applications/app-main')
+project(':model').projectDir=file ('./src/domain/model')
+project(':usecase').projectDir=file ('./src/domain/usecase')
+project(':mongo-repository').projectDir=file ('./src/infrastructure/driven-adapters/mongo-repository')
+project(':reactive-web').projectDir=file ('./src/infrastructure/entry-points/reactive-web')
+project(':serializer').projectDir=file ('./src/infrastructure/helpers/serializer')
+
+
