@@ -31,59 +31,47 @@ public class SetMonoQuoteUseCase extends UseCaseForCommand<SetMonoQuoteCommand> 
     @Override
     public Flux<DomainEvent> apply(Mono<SetMonoQuoteCommand> setMonoQuoteCommandMono) {
 
-            System.out.println(setMonoQuoteCommandMono + " caso de uso");
-           return   setMonoQuoteCommandMono.flatMapMany(command -> repository.findClientsAndReadings()
-                    .collectList()
-                    .flatMapIterable(events -> {
-                        Quotation quotation = Quotation.from(QuotationId.of(UseCasesEnum.miclavepersonal77.toString()), events);
-                        Reading reading = quotation.getReadingById(command.getReadingId())
-                                .orElseThrow(() -> new NoSuchElementException("Libro no encontrado"));
-                        Client client = quotation.getClientById(command.getClientId())
-                                .orElseThrow(() -> new NoSuchElementException("Cliente no encontrado"));
+        System.out.println(setMonoQuoteCommandMono + " caso de uso");
+        return setMonoQuoteCommandMono.flatMapMany(command -> repository.findClientsAndReadings()
+                .collectList()
+                .flatMapIterable(events -> {
+                    Quotation quotation = Quotation.from(QuotationId.of(UseCasesEnum.miclavepersonal77.toString()), events);
+                    Reading reading = quotation.getReadingById(command.getReadingId());
+                    Client client = quotation.getClientById(command.getClientId())
+                            .orElseThrow(() -> new NoSuchElementException("Cliente no encontrado"));
 
-//                        String quoteId=new QuoteId().value();
-//                        quotation.createQuote(quoteId);
-//                        quotation.addReadingToQuote(
-//                                quoteId,
-//                                reading.identity().value(),
-//                                reading.title(),
-//                                reading.author(),
-//                                reading.originalPrice(),
-//                                reading.type()
-//                        );
+                    Integer seniorityDiscount = client.calculateSeniorityDiscount();
+                    Float finalPrice = reading.calculatePrice();
+                    Float discount = -finalPrice * 0.02f;
+                    finalPrice = finalPrice - discount;
+                    discount = (seniorityDiscount / 100f) * finalPrice + discount;
+                    finalPrice = finalPrice - discount;
+                    Float total = finalPrice;
 
-                        Integer seniorityDiscount= client.calculateSeniorityDiscount();
-                        Float finalPrice= reading.calculatePrice();
-                        Float discount=-finalPrice*0.02f;
-                        finalPrice=finalPrice-discount;
-                        discount=(seniorityDiscount/100f)*finalPrice+discount;
-                        finalPrice=finalPrice-discount;
-                        Float total=finalPrice;
+                    String quoteResumeId = new QuoteId().value();
 
-                        String quoteResumeId=new QuoteId().value();
+                    quotation.addQuoteItem(
+                            quoteResumeId,
+                            reading.title(),
+                            reading.author(),
+                            reading.type(),
+                            finalPrice,
+                            reading.originalPrice(),
+                            discount,
+                            reading.amount()
+                    );
+                    quotation.createResumeQuote(
+                            quoteResumeId,
+                            (client.getName() + " " + client.getLastName()),
+                            client.getStartDate().toString(),
+                            QuoteTypeEnum.DETAIL.toString(),
+                            discount,
+                            total
 
-                        quotation.addQuoteItem(
-                                quoteResumeId,
-                                reading.title(),
-                                reading.author(),
-                                reading.type(),
-                                finalPrice,
-                                reading.originalPrice(),
-                                discount,
-                                reading.amount()
-                        );
-                        quotation.createResumeQuote(
-                                quoteResumeId,
-                                (client.getName()+" "+client.getLastName()),
-                                client.getStartDate().toString(),
-                                QuoteTypeEnum.DETAIL.toString(),
-                                discount,
-                                total
+                    );
 
-                        );
-
-                        return quotation.getUncommitedChanges();
-                    }).map(event -> event).flatMap(repository::saveEvent)
-            );
+                    return quotation.getUncommitedChanges();
+                }).map(event -> event).flatMap(repository::saveEvent)
+        );
     }
 }

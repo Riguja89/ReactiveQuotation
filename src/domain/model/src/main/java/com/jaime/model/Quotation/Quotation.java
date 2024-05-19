@@ -12,6 +12,7 @@ import com.jaime.model.generic.DomainEvent;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class Quotation extends AggregateRoot<QuotationId> {
@@ -67,8 +68,9 @@ public class Quotation extends AggregateRoot<QuotationId> {
         appendChange(new QuoteItemAdded(quoteResumeId,readingTitle,readingAuthor,readingType,finalPrice,originalPrice,discount,amount));
     }
 
-    public Optional<Reading> getReadingById(String readingId){
-       return readings.stream().filter(reading -> reading.identity().value().equals(readingId)).findFirst();
+    public Reading getReadingById(String readingId){
+       return readings.stream().filter(reading -> reading.identity().value().equals(readingId))
+               .findFirst().orElseThrow(() -> new NoSuchElementException("Libro no encontrado"));
     }
 
     public Optional<Client> getClientById(String clientId){

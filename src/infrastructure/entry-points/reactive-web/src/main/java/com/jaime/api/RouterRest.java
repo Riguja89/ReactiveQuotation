@@ -31,6 +31,10 @@ public class RouterRest {
                 POST("/api/v1/MonoQuote")
                         .and(accept(MediaType.APPLICATION_JSON)),
                 handler::handlerSetMonoQuote
+        ).andRoute(
+                POST("/api/v1/MultipleQuote")
+                        .and(accept(MediaType.APPLICATION_JSON)),
+                handler::handlerSetMultipleQuote
         );
     }
 
