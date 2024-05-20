@@ -25,6 +25,7 @@ public class Quotation extends AggregateRoot<QuotationId> {
         subscribe(new QuotationBehavior(this));
         appendChange(new QuotationCreated());
     }
+
     private Quotation(QuotationId id) {
         super(id);
         subscribe(new QuotationBehavior(this));
@@ -37,11 +38,13 @@ public class Quotation extends AggregateRoot<QuotationId> {
     public void addReading(String readingId, String title, String author, Long originalPrice, String readingType) {
         appendChange(new ReadingAdded(readingId, title, author, originalPrice, readingType));
     }
+
     public void createQuote(String quoteId) {
         appendChange(new QuoteCreated(quoteId));
     }
+
     public void addReadingToQuote(String quoteId, String readingId, String title, String author, Long originalPrice, String readingType) {
-        appendChange(new ReadingToQuoteAdded(quoteId,readingId,title,author,originalPrice,readingType));
+        appendChange(new ReadingToQuoteAdded(quoteId, readingId, title, author, originalPrice, readingType));
     }
 
     public void createResumeQuote(
@@ -52,7 +55,19 @@ public class Quotation extends AggregateRoot<QuotationId> {
             Float totaDiscount,
             Float resumeTotal
     ) {
-        appendChange(new QuoteResumeCreated(quoteResumeId,nameClient,startDateClient,quoteType,totaDiscount,resumeTotal));
+        appendChange(new QuoteResumeCreated(quoteResumeId, nameClient, startDateClient, quoteType, totaDiscount, resumeTotal));
+    }
+
+    public void createResumeQuote(
+            String quoteResumeId,
+            String groupQuotesId,
+            String nameClient,
+            String startDateClient,
+            String quoteType,
+            Float totaDiscount,
+            Float resumeTotal
+    ) {
+        appendChange(new QuoteResumeCreated(quoteResumeId, groupQuotesId, nameClient, startDateClient, quoteType, totaDiscount, resumeTotal));
     }
 
     public void addQuoteItem(
@@ -64,16 +79,25 @@ public class Quotation extends AggregateRoot<QuotationId> {
             Float originalPrice,
             Float discount,
             Integer amount
-    ){
-        appendChange(new QuoteItemAdded(quoteResumeId,readingTitle,readingAuthor,readingType,finalPrice,originalPrice,discount,amount));
+    ) {
+        appendChange(new QuoteItemAdded(quoteResumeId, readingTitle, readingAuthor, readingType, finalPrice, originalPrice, discount, amount));
     }
 
-    public Reading getReadingById(String readingId){
-       return readings.stream().filter(reading -> reading.identity().value().equals(readingId))
-               .findFirst().orElseThrow(() -> new NoSuchElementException("Libro no encontrado"));
+    public void createGroupQuotes(
+            String groupQuotesId,
+            String nameClient,
+            Float totalGroupDiscount,
+            Float totalGroupQuote
+    ) {
+        appendChange(new GroupQuotesAdded(groupQuotesId, nameClient, totalGroupDiscount, totalGroupQuote));
     }
 
-    public Client getClientById(String clientId){
+    public Reading getReadingById(String readingId) {
+        return readings.stream().filter(reading -> reading.identity().value().equals(readingId))
+                .findFirst().orElseThrow(() -> new NoSuchElementException("Libro no encontrado"));
+    }
+
+    public Client getClientById(String clientId) {
         return clients.stream().filter(client -> client.identity().value().equals(clientId))
                 .findFirst().orElseThrow(() -> new NoSuchElementException("Cliente no encontrado"));
     }

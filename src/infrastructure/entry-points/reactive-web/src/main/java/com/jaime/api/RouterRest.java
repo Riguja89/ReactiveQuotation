@@ -39,6 +39,10 @@ public class RouterRest {
                 POST("/api/v1/BudgetQuote")
                         .and(accept(MediaType.APPLICATION_JSON)),
                 handler::handlerSetBudgetQuote
+        ).andRoute(
+                POST("/api/v1/GroupQuotes")
+                        .and(accept(MediaType.APPLICATION_JSON)),
+                handler::handlerSetGroupQuote
         );
     }
 
