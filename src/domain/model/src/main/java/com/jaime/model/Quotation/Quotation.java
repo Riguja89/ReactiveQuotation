@@ -73,8 +73,9 @@ public class Quotation extends AggregateRoot<QuotationId> {
                .findFirst().orElseThrow(() -> new NoSuchElementException("Libro no encontrado"));
     }
 
-    public Optional<Client> getClientById(String clientId){
-        return clients.stream().filter(client -> client.identity().value().equals(clientId)).findFirst();
+    public Client getClientById(String clientId){
+        return clients.stream().filter(client -> client.identity().value().equals(clientId))
+                .findFirst().orElseThrow(() -> new NoSuchElementException("Cliente no encontrado"));
     }
 
     public static Quotation from(QuotationId quotationId, List<DomainEvent> events) {

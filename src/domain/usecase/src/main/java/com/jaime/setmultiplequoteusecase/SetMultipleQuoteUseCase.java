@@ -35,9 +35,7 @@ public class SetMultipleQuoteUseCase extends UseCaseForCommand<SetMultipleQuoteC
                 .flatMapIterable(events -> {
                     Quotation quotation = Quotation.from(QuotationId.of(UseCasesEnum.miclavepersonal77.toString()), events);
 
-                    Client client = quotation.getClientById(command.getClientId())
-                            .orElseThrow(() -> new NoSuchElementException("Cliente no encontrado"));
-
+                    Client client = quotation.getClientById(command.getClientId());
                     Integer seniorityDiscount = client.calculateSeniorityDiscount();
                     String quoteResumeId = new QuoteId().value();
                     final Float[] resumeTotal = {0f};
@@ -45,32 +43,32 @@ public class SetMultipleQuoteUseCase extends UseCaseForCommand<SetMultipleQuoteC
                     final Integer[] readingsAmount = {0};
                     final String[] typeQuote = {QuoteTypeEnum.DETAIL.toString()};
 
-                    Flux<TupleReadingAmount> myFlux = Flux.fromIterable(command.getReadingAmountList());
-
-                    Flux<Reading> readings = myFlux.map(tuple -> {
+                    Flux<Reading> readings = Flux.fromIterable(command.getReadingAmountList()).map(tuple -> {
                         Reading copy = quotation.getReadingById(tuple.getReadingId());
                         copy.modifyAmount(ReadingAmount.of(tuple.getAmount()));
-                        readingsAmount[0] += tuple.getAmount();
                         return copy;
-                    });
+                    }).sort(Comparator.comparingDouble(Reading::calculatePrice).reversed());
 
                     readings.map(reading -> {
                         Float mayorDiscount = 0.0f;
-
+                        readingsAmount[0] += reading.amount();
                         if (readingsAmount[0] > 10) {
                             mayorDiscount = 0.15f * (readingsAmount[0] - 10);
                             typeQuote[0] = QuoteTypeEnum.MAYOR.toString();
                         }
 
                         Float finalPrice = reading.calculatePrice();
-                        Float discount = -finalPrice * 0.02f;
+                        Float discount=0f;
+                        Float discountMayor;
+
+                        if (typeQuote[0].equals(QuoteTypeEnum.DETAIL.toString())) discount = -finalPrice * 0.02f;
                         readingsAmount[0] = readingsAmount[0] + reading.amount();
                         finalPrice = finalPrice - discount;
                         discount = (seniorityDiscount / 100f) * finalPrice + discount;
                         finalPrice = finalPrice - discount;
                         finalPrice = finalPrice * reading.amount();
                         discount = discount * reading.amount();
-                        Float discountMayor = finalPrice * (mayorDiscount / 100f);
+                        discountMayor = finalPrice * (mayorDiscount / 100f);
                         discount += discountMayor;
                         finalPrice -= discount;
                         resumeTotal[0] = resumeTotal[0] + finalPrice;
@@ -87,18 +85,18 @@ public class SetMultipleQuoteUseCase extends UseCaseForCommand<SetMultipleQuoteC
                                 reading.amount()
                         );
                         return reading;
+                    }).then().doOnSuccess(s -> {
+                        quotation.createResumeQuote(
+                                quoteResumeId,
+                                (client.getName() + " " + client.getLastName()),
+                                client.getStartDate().toString(),
+                                typeQuote[0],
+                                resumeDiscount[0],
+                                resumeTotal[0]
+                        );
                     }).subscribe();
 
-                    quotation.createResumeQuote(
-                            quoteResumeId,
-                            (client.getName() + " " + client.getLastName()),
-                            client.getStartDate().toString(),
-                            typeQuote[0],
-                            resumeDiscount[0],
-                            resumeTotal[0]
-                    );
-
-                    return quotation.getUncommitedChanges().sort(Comparator.);
+                    return quotation.getUncommitedChanges();
                 }).flatMap(repository::saveEvent)
         );
 

@@ -8,7 +8,7 @@ public class ReadingAmount implements ValueObject<Integer> {
 
     private ReadingAmount(Integer amount) {
 
-        if (amount > 0 && amount < 600) {
+        if (amount >= 0 && amount < 600) {
             this.amount = amount;
         } else {
             throw new IllegalArgumentException("Cantidad de libro fuera de rango");

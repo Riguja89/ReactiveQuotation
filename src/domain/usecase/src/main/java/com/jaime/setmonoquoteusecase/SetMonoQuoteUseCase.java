@@ -37,8 +37,7 @@ public class SetMonoQuoteUseCase extends UseCaseForCommand<SetMonoQuoteCommand> 
                 .flatMapIterable(events -> {
                     Quotation quotation = Quotation.from(QuotationId.of(UseCasesEnum.miclavepersonal77.toString()), events);
                     Reading reading = quotation.getReadingById(command.getReadingId());
-                    Client client = quotation.getClientById(command.getClientId())
-                            .orElseThrow(() -> new NoSuchElementException("Cliente no encontrado"));
+                    Client client = quotation.getClientById(command.getClientId());
 
                     Integer seniorityDiscount = client.calculateSeniorityDiscount();
                     Float finalPrice = reading.calculatePrice();

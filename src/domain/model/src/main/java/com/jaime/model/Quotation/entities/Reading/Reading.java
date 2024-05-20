@@ -65,4 +65,5 @@ public class Reading extends Entity<ReadingId> {
             return this.originalPrice.value() * 2f;
         }
     }
+
 }
